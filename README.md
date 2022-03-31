@@ -1,4 +1,4 @@
-# misp-metrics
+# misp-grafana
 ![Grafana Dashboard](./img/grafana.png)
 
 ## Infrastructure
