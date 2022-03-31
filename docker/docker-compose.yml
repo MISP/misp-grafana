@@ -3,50 +3,20 @@ services:
   influxdb:
     image: influxdb:latest
     volumes:
-      # Mount for influxdb data directory and configuration
       - influxdb-storage:/var/lib/influxdb2:rw
+      # - ./influxdb/ssl/influxdb-selfsigned.crt:/etc/ssl/influxdb-selfsigned.crt:rw
+      # - ./influxdb/ssl/influxdb-selfsigned.key:/etc/ssl/influxdb-selfsigned.key:rw
     ports:
       - "8086:8086"
-
-  # Use the influx cli to set up an influxdb instance. 
-  influxdb_cli:
-    links:
-      - influxdb
-    image: influxdb:latest
-    volumes:
-      - influxdb-storage:/var/lib/influxdb2:rw
-      - ./influxdb/ssl/influxdb-selfsigned.crt:/etc/ssl/influxdb-selfsigned.crt:rw
-      - ./influxdb/ssl/influxdb-selfsigned.key:/etc/ssl/influxdb-selfsigned.key:rw
     environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=myusername
-      - DOCKER_INFLUXDB_INIT_PASSWORD=passwordpasswordpassword
-      - DOCKER_INFLUXDB_INIT_ORG=myorg
-      - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mytoken
-      - INFLUXD_TLS_CERT=/etc/ssl/influxdb-selfsigned.crt
-      - INFLUXD_TLS_KEY=/etc/ssl/influxdb-selfsigned.key
-    entrypoint: [ "./entrypoint.sh" ]
-    restart: on-failure:10
-    depends_on:
-      - influxdb
-
-  # telegraf:
-  #   image: telegraf
-  #   links:
-  #     - influxdb
-  #   volumes:
-  #     - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-  #     - /var/log/apache2:/tmp/apache2:ro
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #   user:
-  #     998:998
-  #   environment:
-  #     - DOCKER_INFLUXDB_INIT_ORG=myorg
-  #     - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
-  #     - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mytoken
-  #   depends_on:
-  #     - influxdb_cli
+      - DOCKER_INFLUXDB_INIT_MODE=${DOCKER_INFLUXDB_INIT_MODE}
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
+      # - INFLUXD_TLS_CERT=/etc/ssl/influxdb-selfsigned.crt
+      # - INFLUXD_TLS_KEY=/etc/ssl/influxdb-selfsigned.key
 
   grafana:
     image: grafana/grafana:latest

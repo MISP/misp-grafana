@@ -1,73 +1,93 @@
 # misp-metrics
+![Grafana Dashboard](./img/grafana.png)
 
-- InfluxDB 2.1: Time series database for storing MISP metrics 
+## Infrastructure
+- **InfluxDB 2.x**: Time series database for storing MISP metrics 
     - URL: http://localhost:8086
-- Grafana: For the UI and dashboards
+    - default user: admin
+    - default password: passwordpasswordpassword
+- **Grafana**: For the UI and dashboards
     - URL: http://localhost:3000
-- Telegraf: Agent installed in the MISP instance for pushing metrics to InfluxDB
-  - Nginx/Apache
-  - MySQL/MariaDB
-  - Redis
+    - default user: admin
+    - default password: passwordpasswordpassword
+- **[push_zmq_to_influxdb.py](./src/push_zmq_to_influxdb.py)**: Subscribes to the MISP ZMQ stream and pushes data to InfluxDB
+- **Telegraf**: Agent installed in the MISP instance for pushing logs to InfluxDB
 
 ## Installation
-composer install influxdata/influxdb-client-php
 
-### Tracking MySQL/MariaDB performance
-`$ sudo vim /etc/mysql/my.cnf`
+### Using containers
+Using docker is the easiest way to do it and comes pre-configured with the dashboard and InfluxDB datasource.
 
 ```
-[mysqld]
-performance_schema=ON
-performance-schema-instrument='stage/%=ON'
-performance-schema-consumer-events-stages-current=ON
-performance-schema-consumer-events-stages-history=ON
-performance-schema-consumer-events-stages-history-long=ON
+$ cd docker
+$ docker-compose up -d
 ```
 
-`sudo service mysql restart`
+> **NOTE**: For production usage change the default passwords.
 
-Add this to your `telegraf.conf` file:
-```
-[[inputs.mysql]]
-  servers = ["user:password@tcp(127.0.0.1:3306)/"]
-  metric_version = 2
-```
+### Telegraf
+[Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) agent is used to parse MISP logs and push them to InfluxDB, to install it follow this guide:
+* https://docs.influxdata.com/telegraf/v1.21/introduction/installation/
 
-### Config
-1. Go to your InfluxDB UI:
-http://localhost:8086/orgs/e8889e136b55933c/load-data/tokens
-
-2. Copy the token and add it to the `Metrics.token`  MISP instance config.
+Run the agent:
 ```
-'Metrics' => array(
-        'enabled'=> false,
-        'InfluxDB' => array(
-        'url' => 'http://localhost:8086',
-        'token' => 'MY_TOKEN',
-        'bucket' => 'misp',
-        'org' => 'myorg',
-        'timeout' => 10,
-        )
-    ),
+$ telegraf --config telegraf/telegraf.conf
 ```
 
-# InfluxDB v1 compatibility
-Grab bucket-id from InfluxDB UI and:
+> **NOTE:** For the HTTP response time panels you need to extend the default Apache combined log format with the _`%D`_ option, your Apache log configuration as follow:
+> 
+> `LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\" %D" combined`
+> * More info: https://httpd.apache.org/docs/current/mod/mod_log_config.html
+
+### MISP
+Go to your [ZeroMQ](https://zeromq.org/) plugin settings in MISP and set the following values:
 ```
+  'ZeroMQ_enable' => true,
+  'ZeroMQ_host' => '127.0.0.1',
+  'ZeroMQ_port' => 50000,
+  'ZeroMQ_redis_host' => 'localhost',
+  'ZeroMQ_redis_port' => 6379,
+  'ZeroMQ_redis_database' => '1',
+  'ZeroMQ_redis_namespace' => 'mispq',
+  'ZeroMQ_event_notifications_enable' => true,
+  'ZeroMQ_object_notifications_enable' => true,
+  'ZeroMQ_object_reference_notifications_enable' => true,
+  'ZeroMQ_attribute_notifications_enable' => true,
+  'ZeroMQ_sighting_notifications_enable' => true,
+  'ZeroMQ_user_notifications_enable' => true,
+  'ZeroMQ_organisation_notifications_enable' => true,
+  'ZeroMQ_tag_notifications_enable' => true,
+```
+
+### InfluxDB v1 compatibility
+If you want to add a panel using a [InfluxQL](https://docs.influxdata.com/influxdb/v1.8/query_language/) query language instead of [Flux](https://docs.influxdata.com/influxdb/cloud/query-data/get-started/), you can do so by creating a _database and retention policy mapping_ ([DBRP](https://docs.influxdata.com/influxdb/cloud/reference/cli/influx/v1/dbrp/)) for InfluxDB v1 compatibility.
+
+Grab the MISP _bucket-id_ from InfluxDB UI and:
+```
+cd docker/
 $ docker-compose exec influxdb bash
 $ influx v1 dbrp create \
-  --db mydb \
-  --rp mybucket-rp \
-  --bucket-id d5c66ab09153ba05 \
-  --default \
-  -o myorg \
-  -t mytoken
-  
+  --db misp \
+  --rp misp-rp \
+  --bucket-id 2123809cf4de9c68 \
+  -o org \
+  -t tokentokentoken
   
 influx v1 auth create \
-	--read-bucket d5c66ab09153ba05 \
-	--write-bucket d5c66ab09153ba05 \
+	--read-bucket 2123809cf4de9c68 \
+	--write-bucket 2123809cf4de9c68 \
 	--username grafana \
-  	-o myorg \
-  	-t mytoken
+  	-o org \
+  	-t tokentokentoken
+? Please type your password ******** (grafana1)
+? Please type your password again ******** (grafana1)
 ```
+
+Create a new datasource in Grafana with the following parameters:
+* Query Language: `InfluxQL`
+* Custom HTTP Authorization: `Authorization:` `Token tokentokentoken` 
+* Database: `misp`
+* User: `grafana`
+* Password: `grafana1`
+
+> **Guide**: https://docs.influxdata.com/influxdb/v2.0/tools/grafana/?t=InfluxQL
