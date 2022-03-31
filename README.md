@@ -25,7 +25,22 @@ $ docker-compose up -d
 
 > **NOTE**: For production usage change the default passwords.
 
-### Telegraf
+### Pushing MISP metrics
+After InfluxDB and Grafana are up and running, adjust [.env](./src/.env) file to your environment, and run the ZMQ subscriber script:
+
+```
+$ cd src/
+$ pip install -r requirements.txt
+$ python3 src/push_zmq_to_influxdb.py 
+[INFO] [2022-03-31 17:32:51,602] - Subscribed to ZMQ
+[INFO] [2022-03-31 17:32:56,945] - Received message from topic: misp_json_self
+[INFO] [2022-03-31 17:32:56,945] - ZMQ status pushed to InfluxDB
+...
+``` 
+
+> **NOTE:** This script must be running all times to feed InfluxDB with your MISP activity.
+
+### Pushing MISP logs
 [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) agent is used to parse MISP logs and push them to InfluxDB, to install it follow this guide:
 * https://docs.influxdata.com/telegraf/v1.21/introduction/installation/
 
