@@ -77,18 +77,22 @@ Go to your [ZeroMQ](https://zeromq.org/) plugin settings in MISP and set the fol
 ### InfluxDB v1 compatibility
 If you want to add a panel using a [InfluxQL](https://docs.influxdata.com/influxdb/v1.8/query_language/) query language instead of [Flux](https://docs.influxdata.com/influxdb/cloud/query-data/get-started/), you can do so by creating a _database and retention policy mapping_ ([DBRP](https://docs.influxdata.com/influxdb/cloud/reference/cli/influx/v1/dbrp/)) for InfluxDB v1 compatibility.
 
-Grab the MISP _bucket-id_ from InfluxDB UI and:
 ```
 cd docker/
 $ docker-compose exec influxdb bash
+$ influx bucket list --name=misp
+ID			Name	Retention	Shard group duration	Organization ID		Schema Type
+2123809cf4de9c68	misp	infinite	168h0m0s		b28ccb862d147bdd	implicit
 $ influx v1 dbrp create \
   --db misp \
   --rp misp-rp \
   --bucket-id 2123809cf4de9c68 \
   -o org \
   -t tokentokentoken
-  
-influx v1 auth create \
+ID			Database	Bucket ID		Retention Policy	Default	Organization ID
+0924213ebf9ba000	misp		2123809cf4de9c68	misp-rp			true	b28ccb862d147bdd
+
+$ influx v1 auth create \
 	--read-bucket 2123809cf4de9c68 \
 	--write-bucket 2123809cf4de9c68 \
 	--username grafana \
@@ -96,6 +100,8 @@ influx v1 auth create \
   	-t tokentokentoken
 ? Please type your password ******** (grafana1)
 ? Please type your password again ******** (grafana1)
+ID			Description	Username	v2 User Name	v2 User ID		Permissions
+092421c139dba000			grafana		admin		0923ff89a4587000	[read:orgs/b28ccb862d147bdd/buckets/2123809cf4de9c68 write:orgs/b28ccb862d147bdd/buckets/2123809cf4de9c68]
 ```
 
 Create a new datasource in Grafana with the following parameters:
