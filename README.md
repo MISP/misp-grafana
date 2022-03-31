@@ -62,7 +62,6 @@ Go to your [ZeroMQ](https://zeromq.org/) plugin settings in MISP and set the fol
 ### InfluxDB v1 compatibility
 If you want to add a panel using a [InfluxQL](https://docs.influxdata.com/influxdb/v1.8/query_language/) query language instead of [Flux](https://docs.influxdata.com/influxdb/cloud/query-data/get-started/), you can do so by creating a _database and retention policy mapping_ ([DBRP](https://docs.influxdata.com/influxdb/cloud/reference/cli/influx/v1/dbrp/)) for InfluxDB v1 compatibility.
 
-Grab the MISP _bucket-id_ from InfluxDB UI and:
 ```
 cd docker/
 $ docker-compose exec influxdb bash
