@@ -7,10 +7,10 @@
 
 import json
 import zmq
-import time
 import logging
 import os
 import sys
+import time
 from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import ASYNCHRONOUS
@@ -20,8 +20,8 @@ logging.basicConfig(stream=sys.stdout,
                     level=logging.INFO)
 
 
-def push_metric(api, m, recv_ts):
-    if "AuditLog" in m:
+def push_metric(api, topic, m, recv_ts):
+    if topic == "misp_json_audit" and "AuditLog" in m:
         logging.info("AuditLog pushed to InfluxDB")
         api.write(bucket="misp", record={
             "measurement": "audit",
@@ -37,22 +37,7 @@ def push_metric(api, m, recv_ts):
             },
         })
 
-    if "Log" in m:
-        logging.info("Log pushed to InfluxDB")
-        api.write(bucket="misp", record={
-            "measurement": "audit",
-            "tags": {
-                "model": m["Log"]["model"].lower(),
-                "action": m["Log"]["action"].lower()
-            },
-            "fields": {
-                "ip": m["Log"].get("ip", ""),
-                "model_id": str(m["Log"].get("model_id", "")),
-                "email": m["Log"].get("email", "")
-            },
-        })
-
-    if "Event" in m and "Attribute" not in m:
+    if topic == "misp_json_event" and "Event" in m:
         logging.info("Event pushed to InfluxDB")
         r = {
             "measurement": "event",
@@ -69,7 +54,7 @@ def push_metric(api, m, recv_ts):
 
         api.write(bucket="misp", record=r)
 
-    if "Attribute" in m:
+    if topic == "misp_json_attribute" and "Attribute" in m:
         logging.info("Attribute pushed to InfluxDB")
         api.write(bucket="misp", record={
             "measurement": "attribute",
@@ -87,7 +72,7 @@ def push_metric(api, m, recv_ts):
             "time": int(float(m["Attribute"].get("timestamp", recv_ts)) * 1000000000)
         })
 
-    if "Sighting" in m:
+    if topic == "misp_json_sighting" and "Sighting" in m:
         logging.info("Sighting pushed to InfluxDB")
         api.write(bucket="misp", record={
             "measurement": "sighting",
@@ -106,7 +91,7 @@ def push_metric(api, m, recv_ts):
             "time": int(float(m["Sighting"].get("date_sighting", recv_ts)) * 1000000000)
         })
 
-    if "status" in m:
+    if topic == "misp_json_self" and "status" in m:
         logging.info("ZMQ status pushed to InfluxDB")
         api.write(bucket="misp", record={
             "measurement": "zmq_status",
@@ -115,6 +100,13 @@ def push_metric(api, m, recv_ts):
             }
         })
 
+    # TODO: handle this topics
+    # misp_json_user
+    # misp_json_object
+    # misp_json_organisation
+    # misp_json_object_reference
+    # misp_json_conversation
+    # misp_json_tag
 
 def main():
 
@@ -124,8 +116,7 @@ def main():
     # ZMQ client
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
-    socket.connect("tcp://%s:%s" %
-                   (os.getenv("MISP_ZMQ_HOST"), os.getenv("MISP_ZMQ_PORT")))
+    socket.connect("tcp://%s:%s" % (os.getenv("MISP_ZMQ_HOST"), os.getenv("MISP_ZMQ_PORT")))
     socket.setsockopt(zmq.SUBSCRIBE, b'')
 
     poller = zmq.Poller()
@@ -147,11 +138,10 @@ def main():
             topic, s, m = message.decode('utf-8').partition(" ")
             logging.info("Received message from topic: {}".format(topic))
 
-            push_metric(api, json.loads(m), time.time())
-            # try:
-            #     push_metric(api, json.loads(m))
-            # except Exception as ex:
-            #     logging.error("Failed to push metric: %s" % m, ex)
+            try:
+                push_metric(api, topic, json.loads(m), time.time())
+            except Exception as ex:
+                logging.error("Failed to push metric: %s" % m, ex)
 
 
 if __name__ == '__main__':
