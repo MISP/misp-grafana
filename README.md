@@ -23,7 +23,7 @@ $ cd docker
 $ docker-compose up -d
 ```
 
-> **NOTE**: For production usage change the default passwords.
+> **NOTE**: For production usage change the default credentials.
 
 ### Pushing MISP metrics
 After InfluxDB and Grafana are up and running, adjust [.env](./src/.env) file to your environment, and run the ZMQ subscriber script:
@@ -111,4 +111,7 @@ Create a new datasource in Grafana with the following parameters:
 * User: `grafana`
 * Password: `grafana1`
 
-> **Guide**: https://docs.influxdata.com/influxdb/v2.0/tools/grafana/?t=InfluxQL
+> **NOTE:** For production usage change the sample credentials.
+
+
+> **Guide:** https://docs.influxdata.com/influxdb/v2.0/tools/grafana/?t=InfluxQL
