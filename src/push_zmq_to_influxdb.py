@@ -11,6 +11,7 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime
 from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import ASYNCHRONOUS
@@ -20,14 +21,15 @@ logging.basicConfig(stream=sys.stdout,
                     level=logging.INFO)
 
 
-def push_metric(api, topic, m, recv_ts):
+def push_metric(api, instance, topic, m, recv_ts):
     if topic == "misp_json_audit" and "AuditLog" in m:
         logging.info("AuditLog pushed to InfluxDB")
         api.write(bucket="misp", record={
             "measurement": "audit",
             "tags": {
                 "model": m["AuditLog"]["model"].lower(),
-                "action": m["AuditLog"]["action"].lower()
+                "action": m["AuditLog"]["action"].lower(),
+                "instance": instance
             },
             "fields": {
                 "ip": m["AuditLog"].get("ip", ""),
@@ -37,10 +39,34 @@ def push_metric(api, topic, m, recv_ts):
             },
         })
 
+    if topic == "misp_json_audit" and "Log" in m:
+        logging.info("Log pushed to InfluxDB")
+        r = {
+            "measurement": "audit",
+            "tags": {
+                "model": m["Log"]["model"].lower(),
+                "action": m["Log"]["action"].lower(),
+                "instance": instance
+            },
+            "fields": {
+                "ip": m["Log"].get("ip", ""),
+                "email": str(m["Log"].get("email", "")),
+                "user_id": str(m["Log"].get("user_id", "")),
+                "org": str(m["Log"].get("org", "")),
+                "model_id": str(m["Log"].get("model_id", ""))
+            },
+            "time": int(datetime.strptime(m["Log"]["created"], '%Y-%m-%d %H:%M:%S').strftime("%s")) * 1000000000
+        }
+
+        api.write(bucket="misp", record=r)
+
     if topic == "misp_json_event" and "Event" in m:
         logging.info("Event pushed to InfluxDB")
         r = {
             "measurement": "event",
+            "tags": {
+                "instance": instance
+            },
             "fields": {
                 "id": m["Event"].get("id", ""),
                 "published": str(m["Event"].get("published", False)),
@@ -61,6 +87,7 @@ def push_metric(api, topic, m, recv_ts):
             "tags": {
                 "category": m["Attribute"].get("category", "").lower(),
                 "type":  m["Attribute"].get("type", "").lower(),
+                "instance": instance
             },
             "fields": {
                 "id": m["Attribute"].get("id", ""),
@@ -80,6 +107,7 @@ def push_metric(api, topic, m, recv_ts):
                 "category": m["Attribute"].get("category", "").lower(),
                 "type":  m["Attribute"].get("type", "").lower(),
                 "false_positive":  m["Sighting"].get("type", ""),
+                "instance": instance
             },
             "fields": {
                 "id": m["Sighting"].get("id", ""),
@@ -95,6 +123,9 @@ def push_metric(api, topic, m, recv_ts):
         logging.info("ZMQ status pushed to InfluxDB")
         api.write(bucket="misp", record={
             "measurement": "zmq_status",
+            "tags": {
+                "instance": instance
+            },
             "fields": {
                 "uptime": m["uptime"],
             }
@@ -130,6 +161,7 @@ def main():
         org=os.getenv("INFLUXDB_ORG")
     )
     api = client.write_api(write_options=ASYNCHRONOUS)
+    instance = os.getenv("MISP_INSTANCE_ID")
 
     while True:
         socks = dict(poller.poll(timeout=None))
@@ -139,7 +171,7 @@ def main():
             logging.info("Received message from topic: {}".format(topic))
 
             try:
-                push_metric(api, topic, json.loads(m), time.time())
+                push_metric(api, instance, topic, json.loads(m), time.time())
             except Exception as ex:
                 logging.error("Failed to push metric: %s" % m, ex)
 

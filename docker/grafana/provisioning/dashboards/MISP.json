@@ -21,10 +21,16 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 2,
+  "iteration": 1649070178810,
   "links": [],
   "liveNow": false,
   "panels": [
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -79,7 +85,7 @@
           {
             "matcher": {
               "id": "byFrameRefID",
-              "options": "Successful Logins"
+              "options": "Successful"
             },
             "properties": [
               {
@@ -98,7 +104,7 @@
           {
             "matcher": {
               "id": "byFrameRefID",
-              "options": "Failed Logins"
+              "options": "Failed"
             },
             "properties": [
               {
@@ -141,8 +147,8 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"login\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
-          "refId": "Successful Logins"
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"login\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
+          "refId": "Successful"
         },
         {
           "datasource": {
@@ -150,14 +156,18 @@
             "uid": "7utNPds7z"
           },
           "hide": false,
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"login_fail\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
-          "refId": "Failed Logins"
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"login_fail\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
+          "refId": "Failed"
         }
       ],
       "title": "Logins",
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -286,7 +296,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"event\")\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"], desc: true)\n  |> drop(columns: [\"_start\", \"_stop\", \"_measurement\", \"id\", \"org_id\", \"published\"])",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"event\")\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"], desc: true)\n  |> drop(columns: [\"_start\", \"_stop\", \"_measurement\", \"id\", \"org_id\", \"published\"])",
           "refId": "A"
         }
       ],
@@ -294,6 +304,10 @@
       "type": "table"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -316,7 +330,20 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__field.labels.instance}"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 3,
@@ -346,7 +373,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"login\" and r[\"_field\"] == \"model_id\")\n  |> count()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"login\" and r[\"_field\"] == \"model_id\")\n  |> count()",
           "refId": "A"
         }
       ],
@@ -354,6 +381,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -406,7 +437,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\")\n  |> filter(fn: (r) => r[\"model\"] == \"event\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> count()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"event\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> count()",
           "refId": "A"
         }
       ],
@@ -414,6 +445,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -467,25 +502,25 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "audit model_id {action=\"add\", model=\"event\"}"
+              "id": "byFrameRefID",
+              "options": "Created"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Created"
+                "value": "[${__field.labels.instance}] Created"
               }
             ]
           },
           {
             "matcher": {
-              "id": "byName",
-              "options": "model_id {action=\"publish\", model=\"event\"}"
+              "id": "byFrameRefID",
+              "options": "Published"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Published"
+                "value": "[${__field.labels.instance}] Published"
               }
             ]
           }
@@ -515,7 +550,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"event\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"event\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
           "refId": "Created"
         },
         {
@@ -524,7 +559,7 @@
             "uid": "7utNPds7z"
           },
           "hide": false,
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"event\" and r[\"action\"] == \"publish\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"event\" and r[\"action\"] == \"publish\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
           "refId": "Published"
         }
       ],
@@ -532,6 +567,10 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -594,7 +633,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"attribute\" and r[\"_field\"] == \"id\")\n  |> group(columns: [\"type\"], mode:\"by\")\n  |> count()\n",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"attribute\" and r[\"_field\"] == \"id\")\n  |> group(columns: [\"type\"], mode:\"by\")\n  |> count()\n",
           "refId": "A"
         }
       ],
@@ -602,6 +641,10 @@
       "type": "piechart"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -662,7 +705,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"attribute\" and r[\"_field\"] == \"id\")\n  |> group(columns: [\"category\"], mode:\"by\")\n  |> count()\n",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"attribute\" and r[\"_field\"] == \"id\")\n  |> group(columns: [\"category\"], mode:\"by\")\n  |> count()\n",
           "refId": "A"
         }
       ],
@@ -670,6 +713,10 @@
       "type": "piechart"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -692,7 +739,20 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${__field.labels.instance}"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 3,
@@ -722,7 +782,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\")\n  |> filter(fn: (r) => r[\"model\"] == \"attribute\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> count()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"attribute\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> count()",
           "refId": "A"
         }
       ],
@@ -730,6 +790,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -782,7 +846,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"email\" and r[\"_field\"] == \"model_id\")\n  |> count()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"user\" and r[\"action\"] == \"email\" and r[\"_field\"] == \"model_id\")\n  |> count()",
           "refId": "A"
         }
       ],
@@ -790,6 +854,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -843,25 +911,25 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "audit model_id {action=\"add\", model=\"attribute\"}"
+              "id": "byFrameRefID",
+              "options": "Attributes"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Attributes"
+                "value": "[${__field.labels.instance}] Attribute"
               }
             ]
           },
           {
             "matcher": {
-              "id": "byName",
-              "options": "model_id {action=\"add\", model=\"object\"}"
+              "id": "byFrameRefID",
+              "options": "Objects"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Objects"
+                "value": "[${__field.labels.instance}] Object"
               }
             ]
           }
@@ -892,7 +960,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"attribute\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"attribute\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
           "refId": "Attributes"
         },
         {
@@ -901,7 +969,7 @@
             "uid": "7utNPds7z"
           },
           "hide": false,
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"object\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"audit\" and r[\"model\"] == \"object\" and r[\"action\"] == \"add\" and r[\"_field\"] == \"model_id\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)\n",
           "refId": "Objects"
         }
       ],
@@ -909,6 +977,10 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -985,7 +1057,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_apache_access_log\" and  r[\"_field\"] == \"request\")\n  |> group(columns: [\"resp_code\"], mode:\"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_apache_access_log\" and  r[\"_field\"] == \"request\")\n  |> group(columns: [\"resp_code\"], mode:\"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
           "refId": "A"
         }
       ],
@@ -993,6 +1065,10 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1046,7 +1122,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_apache_access_log\")\n  |> filter(fn: (r) => r[\"_field\"] == \"response_time\")\n  |> toFloat()\n  |> group()\n  |> median()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_apache_access_log\" and r[\"_field\"] == \"response_time\")\n  |> toFloat()\n  |> group()\n  |> median()",
           "refId": "A"
         }
       ],
@@ -1054,6 +1130,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1107,7 +1187,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_apache_access_log\")\n  |> filter(fn: (r) => r[\"_field\"] == \"response_time\")\n  |> toFloat()\n  |> group()\n  |> max()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_apache_access_log\" and r[\"_field\"] == \"response_time\")\n  |> toFloat()\n  |> group()\n  |> max()",
           "refId": "A"
         }
       ],
@@ -1115,6 +1195,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1221,7 +1305,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_error_log\" and r[\"_field\"] == \"log_entry_text\")\n  |> group(columns: [\"log_entry_type\"], mode:\"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_error_log\" and r[\"_field\"] == \"log_entry_text\")\n  |> group(columns: [\"log_entry_type\"], mode:\"by\")\n  |> aggregateWindow(every: v.windowPeriod, fn: count)",
           "refId": "A"
         }
       ],
@@ -1229,6 +1313,10 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "gridPos": {
         "h": 5,
         "w": 10,
@@ -1253,7 +1341,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_error_log\" and r[\"_field\"] == \"log_entry_text\")\n",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_error_log\" and r[\"_field\"] == \"log_entry_text\")\n",
           "refId": "A"
         }
       ],
@@ -1262,6 +1350,10 @@
       "type": "logs"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1315,7 +1407,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"zmq_status\")\n  |> filter(fn: (r) => r[\"_field\"] == \"uptime\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "query": "from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"zmq_status\" and r[\"_field\"] == \"uptime\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
@@ -1323,6 +1415,10 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "7utNPds7z"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1349,7 +1445,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 2,
+        "h": 3,
         "w": 3,
         "x": 21,
         "y": 21
@@ -1376,7 +1472,7 @@
             "type": "influxdb",
             "uid": "7utNPds7z"
           },
-          "query": "from(bucket: \"misp\")\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_error_log\" and r[\"log_entry_type\"] == \"Error\" and r[\"_field\"] == \"log_entry_text\")\n  |> count()",
+          "query": "from(bucket: v.bucket)\n  |> range(start: today())\n  |> filter(fn: (r) => r[\"instance\"] =~ /${instance:regex}/)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"misp_error_log\" and r[\"log_entry_type\"] == \"Error\" and r[\"_field\"] == \"log_entry_text\")\n  |> count()",
           "refId": "A"
         }
       ],
@@ -1472,9 +1568,65 @@
   "refresh": "5s",
   "schemaVersion": 35,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "misp",
+    "threat-intelligence",
+    "cybersecurity"
+  ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "misp",
+          "value": "misp"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "7utNPds7z"
+        },
+        "definition": "buckets()\n  |> filter(fn: (r) => r.name !~ /^_/)\n  |> rename(columns: {name: \"_value\"})\n  |> keep(columns: [\"_value\"])",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "bucket",
+        "options": [],
+        "query": "buckets()\n  |> filter(fn: (r) => r.name !~ /^_/)\n  |> rename(columns: {name: \"_value\"})\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "7utNPds7z"
+        },
+        "definition": "import \"influxdata/influxdb/v1\"\nv1.tagValues(bucket: v.bucket, tag: \"instance\")",
+        "hide": 0,
+        "includeAll": true,
+        "label": "misp-instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": "import \"influxdata/influxdb/v1\"\nv1.tagValues(bucket: v.bucket, tag: \"instance\")",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-3h",
