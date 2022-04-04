@@ -81,6 +81,7 @@ The included sample Grafana dashboard supports showing metrics from different MI
 
 #### Telegraf
 Each instance should have running it's own Telegraf agent, for each instance set an unique identifier _global_tags_ `telegraf.conf` as follows:
+
 **Internal MISP instance**
 ```
 [global_tags]
