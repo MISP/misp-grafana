@@ -1,4 +1,7 @@
 # misp-grafana
+
+A real-time Grafana dashboard using MISP ZeroMQ message queue and InfluxDB .
+
 ![Grafana Dashboard](./img/grafana.png)
 
 ## Infrastructure
