@@ -31,7 +31,7 @@ After InfluxDB and Grafana are up and running, adjust [.env](./src/.env) file to
 ```
 $ cd src/
 $ pip install -r requirements.txt
-$ python3 src/push_zmq_to_influxdb.py 
+$ python3 src/push_zmq_to_influxdb.py
 [INFO] [2022-03-31 17:32:51,602] - Subscribed to ZMQ
 [INFO] [2022-03-31 17:32:56,945] - Received message from topic: misp_json_self
 [INFO] [2022-03-31 17:32:56,945] - ZMQ status pushed to InfluxDB
@@ -72,6 +72,43 @@ Go to your [ZeroMQ](https://zeromq.org/) plugin settings in MISP and set the fol
   'ZeroMQ_user_notifications_enable' => true,
   'ZeroMQ_organisation_notifications_enable' => true,
   'ZeroMQ_tag_notifications_enable' => true,
+```
+
+### Monitoring multiple MISP instances
+The included sample Grafana dashboard supports showing metrics from different MISP instances, for this its required that the data points coming from each instance have an associated `instance` tag. 
+
+![](./img/grafana-misp-multi-instance.png)
+
+#### Telegraf
+Each instance should have running it's own Telegraf agent, for each instance set an unique identifier _global_tags_ `telegraf.conf` as follows:
+**Internal MISP instance**
+```
+[global_tags]
+  instance = "internal"
+```
+
+**External MISP instance**
+```
+[global_tags]
+  instance = "external"
+```
+
+#### ZeroMQ
+For each MISP instance there must be one _`push_zmq_to_influxdb.py`_ script running, each connected to the corresponding ZeroMQ publisher.
+
+
+**Internal MISP instance**
+```
+$ python3 src/push_zmq_to_influxdb.py -id=internal --url=tcp://misp.internal:50000
+[INFO] [2022-04-04 14:18:24,638] - Subscribed to ZMQ
+...
+```
+
+**External MISP instance**
+```
+$ python3 src/push_zmq_to_influxdb.py -id=external --url=tcp://misp.external:50000
+[INFO] [2022-04-04 14:18:24,638] - Subscribed to ZMQ
+...
 ```
 
 ### InfluxDB v1 compatibility

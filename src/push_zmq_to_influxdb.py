@@ -5,6 +5,7 @@
 # from a MISP instance and push them to an InfluxDB instance.
 #
 
+import argparse
 import json
 import zmq
 import logging
@@ -141,13 +142,18 @@ def push_metric(api, instance, topic, m, recv_ts):
 
 def main():
 
+    parser = argparse.ArgumentParser(description='A script to push MISP ZeroMQ messages to InfluxDB')
+    parser.add_argument('-id', '--instance-id', required=False, dest='instance', help='The MISP instance global tag to apply to the metrics', default="")
+    parser.add_argument('-u', '--url', required=False, dest='zmqurl', help='The ZeroMQ publisher to connect to', default="tcp://localhost:50000")
+    args = parser.parse_args()
+
     # Load environment variables
     load_dotenv()
 
     # ZMQ client
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
-    socket.connect("tcp://%s:%s" % (os.getenv("MISP_ZMQ_HOST"), os.getenv("MISP_ZMQ_PORT")))
+    socket.connect(args.zmqurl)
     socket.setsockopt(zmq.SUBSCRIBE, b'')
 
     poller = zmq.Poller()
@@ -161,7 +167,6 @@ def main():
         org=os.getenv("INFLUXDB_ORG")
     )
     api = client.write_api(write_options=ASYNCHRONOUS)
-    instance = os.getenv("MISP_INSTANCE_ID")
 
     while True:
         socks = dict(poller.poll(timeout=None))
@@ -171,7 +176,7 @@ def main():
             logging.info("Received message from topic: {}".format(topic))
 
             try:
-                push_metric(api, instance, topic, json.loads(m), time.time())
+                push_metric(api, args.instance, topic, json.loads(m), time.time())
             except Exception as ex:
                 logging.error("Failed to push metric: %s" % m, ex)
 
