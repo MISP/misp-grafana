@@ -1387,7 +1387,7 @@
       },
       "id": 48,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
