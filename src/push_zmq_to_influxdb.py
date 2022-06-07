@@ -142,13 +142,13 @@ def push_metric(api, instance, topic, m, recv_ts):
 
 def main():
 
-    parser = argparse.ArgumentParser(description='A script to push MISP ZeroMQ messages to InfluxDB')
-    parser.add_argument('-id', '--instance-id', required=False, dest='instance', help='The MISP instance global tag to apply to the metrics', default="")
-    parser.add_argument('-u', '--url', required=False, dest='zmqurl', help='The ZeroMQ publisher to connect to', default="tcp://localhost:50000")
-    args = parser.parse_args()
-
     # Load environment variables
     load_dotenv()
+
+    parser = argparse.ArgumentParser(description='A script to push MISP ZeroMQ messages to InfluxDB')
+    parser.add_argument('-id', '--instance-id', required=False, dest='instance', help='The MISP instance global tag to apply to the metrics', default="prod")
+    parser.add_argument('-u', '--url', required=False, dest='zmqurl', help='The ZeroMQ publisher to connect to', default=os.getenv("MISP_ZMQ_URL"))
+    args = parser.parse_args()
 
     # ZMQ client
     context = zmq.Context()
