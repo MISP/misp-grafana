@@ -56,7 +56,6 @@ def push_metric(api, instance, topic, m, recv_ts):
                 "org": str(m["Log"].get("org", "")),
                 "model_id": str(m["Log"].get("model_id", ""))
             },
-            "time": int(datetime.strptime(m["Log"]["created"], '%Y-%m-%d %H:%M:%S').strftime("%s")) * 1000000000
         }
 
         api.write(bucket="misp", record=r)
