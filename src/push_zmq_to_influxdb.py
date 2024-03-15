@@ -25,7 +25,7 @@ logging.basicConfig(stream=sys.stdout,
 def push_metric(api, instance, topic, m, recv_ts):
     if topic == "misp_json_audit" and "AuditLog" in m:
         logging.info("AuditLog pushed to InfluxDB")
-        api.write(bucket="misp", record={
+        api.write(bucket=os.getenv("INFLUXDB_BUCKET"), record={
             "measurement": "audit",
             "tags": {
                 "model": m["AuditLog"]["model"].lower(),
@@ -58,7 +58,7 @@ def push_metric(api, instance, topic, m, recv_ts):
             },
         }
 
-        api.write(bucket="misp", record=r)
+        api.write(bucket=os.getenv("INFLUXDB_BUCKET"), record=r)
 
     if topic == "misp_json_event" and "Event" in m:
         logging.info("Event pushed to InfluxDB")
@@ -78,11 +78,11 @@ def push_metric(api, instance, topic, m, recv_ts):
             r["fields"]["org"] = m["Orgc"].get("name", "")
             r["fields"]["org_id"] = m["Orgc"].get("id", "")
 
-        api.write(bucket="misp", record=r)
+        api.write(bucket=os.getenv("INFLUXDB_BUCKET"), record=r)
 
     if topic == "misp_json_attribute" and "Attribute" in m:
         logging.info("Attribute pushed to InfluxDB")
-        api.write(bucket="misp", record={
+        api.write(bucket=os.getenv("INFLUXDB_BUCKET"), record={
             "measurement": "attribute",
             "tags": {
                 "category": m["Attribute"].get("category", "").lower(),
@@ -101,7 +101,7 @@ def push_metric(api, instance, topic, m, recv_ts):
 
     if topic == "misp_json_sighting" and "Sighting" in m:
         logging.info("Sighting pushed to InfluxDB")
-        api.write(bucket="misp", record={
+        api.write(bucket=os.getenv("INFLUXDB_BUCKET"), record={
             "measurement": "sighting",
             "tags": {
                 "category": m["Attribute"].get("category", "").lower(),
@@ -121,7 +121,7 @@ def push_metric(api, instance, topic, m, recv_ts):
 
     if topic == "misp_json_self" and "status" in m:
         logging.info("ZMQ status pushed to InfluxDB")
-        api.write(bucket="misp", record={
+        test = api.write(bucket=os.getenv("INFLUXDB_BUCKET"), record={
             "measurement": "zmq_status",
             "tags": {
                 "instance": instance
